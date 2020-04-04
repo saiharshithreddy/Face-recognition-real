@@ -13,7 +13,8 @@ On Ubuntu
 
 ### Tasks
 - [x] Face registration (collecting images)
-- [ ] Face recognition with blink and mouth detection
+- [x] Face recognition with blink and mouth detection
+- [ ] Speed up the video stream
 
 Dataset: Labelled faces in the wild [Download](http://vis-www.cs.umass.edu/lfw/#download)
 
