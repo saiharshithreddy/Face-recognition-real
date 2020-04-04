@@ -1,6 +1,6 @@
 # USAGE
 # python detect_blinks.py --shape-predictor shape_predictor_68_face_landmarks.dat --video blink_detection_demo.mp4
-# python detect_blinks.py --shape-predictor shape_predictor_68_face_landmarks.dat
+# python3 detect_blinks.py --shape-predictor shape_predictor_68_face_landmarks.dat
 
 # import the necessary packages
 from scipy.spatial import distance as dist
@@ -13,6 +13,7 @@ import imutils
 import time
 import dlib
 import cv2
+import os
 
 def eye_aspect_ratio(eye):
 	# compute the euclidean distances between the two sets of
@@ -78,13 +79,13 @@ predictor = dlib.shape_predictor(args["shape_predictor"])
 (mStart, mEnd) = (49, 68)
 # start the video stream thread
 print("[INFO] starting video stream thread...")
-vs = FileVideoStream(args["video"]).start()
+# vs = FileVideoStream(args["video"]).start()
 #fileStream = True
 vs = VideoStream(src=0).start()
 #vs = VideoStream(usePiCamera=True).start()
 fileStream = False
 time.sleep(1.0)
-
+path = './test/'
 # loop over frames from the video stream
 while True:
 	# if this is a file video stream, then we need to check if
@@ -96,6 +97,7 @@ while True:
 	# it, and convert it to grayscale
 	# channels)
 	frame = vs.read()
+	orig = frame.copy()
 	frame = imutils.resize(frame, width=1450)
 	gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
@@ -155,13 +157,29 @@ while True:
 			cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0,0,255),2)
 		# draw the total number of blinks on the frame along with
 		# the computed eye aspect ratio for the frame
+		if Mouth == 0:
+			cv2.putText(frame, "Open your mouth to detect you", (100, 300),
+			cv2.FONT_HERSHEY_SIMPLEX, 1.3, (0, 0, 255), 2)
+
+		if Mouth == 1:
+			cv2.putText(frame, "Open your mouth one more time", (100, 300),
+			cv2.FONT_HERSHEY_SIMPLEX, 1.3, (0, 0, 255), 2)
+
 		cv2.putText(frame, "Blinks: {}".format(TOTAL), (10, 30),
 			cv2.FONT_HERSHEY_SIMPLEX, 1.3, (0, 0, 255), 2)
 		#cv2.putText(frame, "EAR: {:.2f}".format(ear), (300, 30),
 		#	cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
-		if TOTAL >= 2 and Mouth >= 2:
+		if TOTAL == 3 and Mouth == 2:
 			cv2.putText(frame, "Real person", (50, 90),
 				cv2.FONT_HERSHEY_SIMPLEX, 1.3, (0, 0, 255), 2)
+			# time.sleep(2.0)
+		if 3 < TOTAL <= 4 and Mouth > 2:
+			cv2.putText(frame, "Now look straight at the camera", (100, 300),
+		cv2.FONT_HERSHEY_SIMPLEX, 1.3, (0, 0, 255), 2)
+		if TOTAL > 4 and Mouth > 2:
+			p = os.path.sep.join([path, "test.png"])
+			cv2.imwrite(p, orig)
+			exit()
 	# show the frame
 	cv2.imshow("Frame", frame)
 	key = cv2.waitKey(1) & 0xFF
