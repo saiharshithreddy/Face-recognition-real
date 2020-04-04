@@ -361,7 +361,7 @@ def predict():
 				prediction = True
 				# TO-DO
 				# @Harsh
-				# pass the rmethod equest object (username) to predict()
+				# pass the request object (username) to predict()
 				# check name (string) with username and if same send user has been authenticated
 		if prediction:
 			break
