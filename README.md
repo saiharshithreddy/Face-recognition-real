@@ -10,12 +10,12 @@ Face recognition with eye detection
 
 2. Install requirements
 ```pip3 install -r requirements.txt```
-  ├── sklearn
-  ├── flask
-  ├── flask_cors
-  ├── imutils
-  ├── dlib
-  ├── opencv-python
+  ├── sklearn  
+  ├── flask  
+  ├── flask_cors  
+  ├── imutils  
+  ├── dlib  
+  ├── opencv-python  
 
 
 1. Imutils: ```python3 pip install --upgrade imutils```
