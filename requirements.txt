@@ -1,0 +1,6 @@
+sklearn
+flask
+flask_cors
+imutils
+dlib
+opencv-python
