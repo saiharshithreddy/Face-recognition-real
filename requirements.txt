@@ -1,3 +1,5 @@
+pandas
+numpy
 sklearn
 flask
 flask_cors
