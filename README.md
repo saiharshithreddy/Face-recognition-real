@@ -3,17 +3,30 @@ Face recognition with eye detection
 
 # Installation
 
-1. Setup a virtual environment in the folder
+1. Install python3  
+```
+On MacOs  
+brew install python3  
+```
+
+```
+On Ubuntu  
+sudo apt-get install python3  
+```
+2. Setup a virtual environment in the folder
 ```sudo pip3 install virtualenv ```  
 ```virtualenv myenv```  
 ```source myenv/bin/activate```
 
-2. Install requirements
+3. Install requirements
 ```pip3 install -r requirements.txt```  
+  ├── pandas  
+  ├── numpy  
   ├── sklearn  
   ├── flask  
   ├── flask_cors  
   ├── imutils  
+  ├── cmake  
   ├── dlib  
   ├── opencv-python  
 
