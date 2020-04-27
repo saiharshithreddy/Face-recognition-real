@@ -18,14 +18,6 @@ Face recognition with eye detection
   ├── opencv-python  
 
 
-1. Imutils: ```python3 pip install --upgrade imutils```
-2. OpenCV: ```pip install opencv ``` [For MacOS](https://www.pyimagesearch.com/2016/12/19/install-opencv-3-on-macos-with-homebrew-the-easy-way/)
-3. dlib:
-On Ubuntu  
-```sudo apt-get install build-essential cmake  ```  
-```sudo apt-get install libgtk-3-dev ```  
-```sudo apt-get install libboost-all-dev```
-
 #### Folder structure
 ├── dataset  
 │   └── harshith  
