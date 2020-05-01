@@ -77,7 +77,9 @@ Dataset: Labelled faces in the wild [Download](http://vis-www.cs.umass.edu/lfw/#
 ### Eye and mouth detection
 * Using face alignment [2] to get the facial landmarks and using [1] to compute eye aspect ratio to identify eye blinking.   
 * This is to avoid spoofing attacks by clearly differentiating a real person's face and an image of the person
-<img src="images/blinks.png" alt="drawing" width="400"/>
+
+<img src="https://github.com/saiharshithreddy/Face-recognition-real/blob/master/images/blinks.png" alt="Blink detection" width="400"/>
+
 ### Face recognition
 * Generate 128-d embedding of each person's image in the dataset.
 * Train the SVM model for classification
@@ -90,3 +92,4 @@ Dataset: Labelled faces in the wild [Download](http://vis-www.cs.umass.edu/lfw/#
 3. [Shape predictor dataset](https://ibug.doc.ic.ac.uk/resources/facial-point-annotations/)
 4. [FaceNet](https://www.cv-foundation.org/openaccess/content_cvpr_2015/app/1A_089.pdf)
 5. [dlib pretrained models](https://github.com/davisking/dlib-models)
+
