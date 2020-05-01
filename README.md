@@ -62,7 +62,7 @@ sudo apt-get install python3
 ### Tasks
 - [x] Face registration (collecting images)
 - [x] Face recognition with blink detection
-- [ ] Speed up the video stream
+
 
 Dataset: Labelled faces in the wild [Download](http://vis-www.cs.umass.edu/lfw/#download)
 
@@ -77,7 +77,7 @@ Dataset: Labelled faces in the wild [Download](http://vis-www.cs.umass.edu/lfw/#
 ### Eye and mouth detection
 * Using face alignment [2] to get the facial landmarks and using [1] to compute eye aspect ratio to identify eye blinking.   
 * This is to avoid spoofing attacks by clearly differentiating a real person's face and an image of the person
-
+<img src="images/blinks.png" alt="drawing" width="400"/>
 ### Face recognition
 * Generate 128-d embedding of each person's image in the dataset.
 * Train the SVM model for classification
