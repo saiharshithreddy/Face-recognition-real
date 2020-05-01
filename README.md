@@ -1,31 +1,81 @@
 # Face-recognition-real
-Face recognition with eye and mouth detection
+Face recognition with eye detection
 
 # Installation
-1. Imutils: ```python3 pip install --upgrade imutils```
-2. OpenCV: ```pip install opencv ``` [For MacOS](https://www.pyimagesearch.com/2016/12/19/install-opencv-3-on-macos-with-homebrew-the-easy-way/)
-3. dlib:
-On Ubuntu  
-```sudo apt-get install build-essential cmake  ```  
-```sudo apt-get install libgtk-3-dev ```  
-```sudo apt-get install libboost-all-dev```
 
+1. Install python3  
+```
+On MacOs  
+brew install python3  
+```
+
+```
+On Ubuntu  
+sudo apt-get install python3  
+```
+2. Setup a virtual environment in the folder
+```sudo pip3 install virtualenv ```  
+```virtualenv myenv```  
+```source myenv/bin/activate```
+
+3. Install requirements
+```pip3 install -r requirements.txt```  
+  ├── pandas  
+  ├── numpy  
+  ├── sklearn  
+  ├── flask  
+  ├── flask_cors  
+  ├── imutils  
+  ├── cmake  
+  ├── dlib  
+  ├── opencv-python  
+
+
+#### Folder structure
+├── dataset  
+│   └── harshith  
+├── detect_blinks.py  
+├── extract_embeddings.py  
+├── face_detection_model  
+│   ├── deploy.prototxt  
+│   └── res10_300x300_ssd_iter_140000.caffemodel  
+├── facerecog_v2.py  
+├── face_registration.py  
+├── flask_backend.py  
+├── haarcascade_frontalface_default.xml  
+├── openface_nn4.small2.v1.t7  
+├── output  
+│   ├── embeddings.pickle  
+│   ├── le.pickle  
+│   └── recognizer.pickle  
+├── __pycache__  
+│   └── flask.cpython-37.pyc  
+├── README.md  
+├── recognize.py  
+├── recognize_video.py  
+├── requirements.txt  
+├── shape_predictor_68_face_landmarks.dat  
+├── test  
+│   └── test.png  
+└── train_model.py  
 
 ### Tasks
 - [x] Face registration (collecting images)
-- [x] Face recognition with blink and mouth detection
+- [x] Face recognition with blink detection
 - [ ] Speed up the video stream
 
 Dataset: Labelled faces in the wild [Download](http://vis-www.cs.umass.edu/lfw/#download)
 
 ### Face registration
-For using a custom dataset, run ```python3 face_registration.py``` to collect images of a person in folder ```dataset/[person_name]```
+1. For using a custom dataset, run ```python3 face_registration.py --name [person_name]``` to collect images of a person in folder ```dataset/[person_name]```  
+2. Extract embeddings from an image ```python3 extract_embeddings.py```. The embeddings are stored in the path ```output/embeddings.pickle```
+
 
 **Added flask server** to make an api call   
-```python3 app.py```
+```python3 facerecog_v2.py```
 
 ### Eye and mouth detection
-* Using face alignment [2] to get the facial landmarks and using [1] to compute eye aspect ratio to identify eye blinking and opening of mouth.   
+* Using face alignment [2] to get the facial landmarks and using [1] to compute eye aspect ratio to identify eye blinking.   
 * This is to avoid spoofing attacks by clearly differentiating a real person's face and an image of the person
 
 ### Face recognition

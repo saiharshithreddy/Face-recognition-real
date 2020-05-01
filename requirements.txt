@@ -1,0 +1,9 @@
+pandas
+numpy
+sklearn
+flask
+flask_cors
+imutils
+cmake
+dlib
+opencv-python
