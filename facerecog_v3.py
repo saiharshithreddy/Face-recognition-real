@@ -113,11 +113,7 @@ def register():
 			leftEyeHull = cv2.convexHull(leftEye)
 			rightEyeHull = cv2.convexHull(rightEye)
 			
-			# mouth is not needed. 
-			# mouth = shape[mStart:mEnd]
-			# mouthHull = cv2.convexHull(mouth)
-			# cv2.drawContours(frame, [mouthHull], -1, (0, 255, 0), 1)
-
+			
 			# Draw the green borders on eyes. 
 			cv2.drawContours(frame, [leftEyeHull], -1, (0, 255, 0), 1)
 			cv2.drawContours(frame, [rightEyeHull], -1, (0, 255, 0), 1)
@@ -125,7 +121,8 @@ def register():
 		# display
 		cv2.putText(frame, "Move your head slowly", (30,60),
 		cv2.FONT_HERSHEY_SIMPLEX, 1.4, (0,0,255),2)
-
+		cv2.putText(frame, "Images taken:{}".format(total), (30,300),
+		cv2.FONT_HERSHEY_SIMPLEX, 1.4, (0,0,255),2)
 		# show the output frame
 		cv2.imshow("Frame", frame)
 		key = cv2.waitKey(1) & 0xFF
@@ -149,12 +146,7 @@ def register():
 	vs.stop()
 	
 	
-	# dump the facial embeddings + names to disk
-	# print("[INFO] serializing {} encodings...".format(total))
-	# print(knownEmbeddings/ 30)
-	# data = {"embeddings": knownEmbeddings, "names": knownNames}
-	# df = pd.DataFrame.from_dict(data)
-	# df.to_csv('embeddings.txt', encoding='utf-8', index=False)
+	
 	generate_embeddings('dataset')
 	# load the face embeddings
 	print("[INFO] loading face embeddings...")
@@ -190,10 +182,6 @@ def register():
 	json_object["code"] = int(200)
 	json_object["content"]= (jsondata)
 
-	# Append the feature vector to the json object and return 
-	# jsondata['feature_vector'] = list(embeddings)
-
-	# json_object["content"]= jsondata
 
 	response = app.response_class(
         response=json.dumps(json_object),
@@ -204,25 +192,21 @@ def register():
 def generate_embeddings2(path_to_image):
 	# Generate the embedding from the images. 
 
-	# load our serialized face detector from disk
-	# print("[INFO] loading face detector...")
+	
 	protoPath = os.path.sep.join(['face_detection_model', "deploy.prototxt"])
 	modelPath = os.path.sep.join(['face_detection_model',
 		"res10_300x300_ssd_iter_140000.caffemodel"])
 	detector = cv2.dnn.readNetFromCaffe(protoPath, modelPath)
 
-	# load our serialized face embedding model from disk
-	# print("[INFO] loading face recognizer...")
+	
 	embedding_model = 'openface_nn4.small2.v1.t7'
 	embedder = cv2.dnn.readNetFromTorch(embedding_model)
 
-	# grab the paths to the input images in our dataset
-	# print("[INFO] quantifying faces...")
+	
 	print(path_to_image)
 	imagePaths = list(paths.list_images(path_to_image))
 	
-	# initialize our lists of extracted facial embeddings and
-	# corresponding people names
+	
 	knownEmbeddings = np.zeros(128)
 	knownNames = ""
 
@@ -236,40 +220,32 @@ def generate_embeddings2(path_to_image):
 			len(imagePaths)))
 		name = imagePath.split(os.path.sep)[-2]
 
-		# load the image, resize it to have a width of 600 pixels (while
-		# maintaining the aspect ratio), and then grab the image
-		# dimensions
+		
 		image = cv2.imread(imagePath)
 		image = imutils.resize(image, width=600)
 		(h, w) = image.shape[:2]
 
-		# construct a blob from the image
+		
 		imageBlob = cv2.dnn.blobFromImage(
 			cv2.resize(image, (300, 300)), 1.0, (300, 300),
 			(104.0, 177.0, 123.0), swapRB=False, crop=False)
 
-		# apply OpenCV's deep learning-based face detector to localize
-		# faces in the input image
+		
 		detector.setInput(imageBlob)
 		detections = detector.forward()
 
-		# ensure at least one face was found
+		
 		if len(detections) > 0:
-			# we're making the assumption that each image has only ONE
-			# face, so find the bounding box with the largest probability
+			
 			i = np.argmax(detections[0, 0, :, 2])
 			confidence = detections[0, 0, i, 2]
 
-			# ensure that the detection with the largest probability also
-			# means our minimum probability test (thus helping filter out
-			# weak detections)
 			if confidence > 0.5:
-				# compute the (x, y)-coordinates of the bounding box for
-				# the face
+				
 				box = detections[0, 0, i, 3:7] * np.array([w, h, w, h])
 				(startX, startY, endX, endY) = box.astype("int")
 
-				# extract the face ROI and grab the ROI dimensions
+				
 				face = image[startY:endY, startX:endX]
 				(fH, fW) = face.shape[:2]
 
@@ -277,16 +253,12 @@ def generate_embeddings2(path_to_image):
 				if fW < 20 or fH < 20:
 					continue
 
-				# construct a blob for the face ROI, then pass the blob
-				# through our face embedding model to obtain the 128-d
-				# quantification of the face
 				faceBlob = cv2.dnn.blobFromImage(face, 1.0 / 255,
 					(96, 96), (0, 0, 0), swapRB=True, crop=False)
 				embedder.setInput(faceBlob)
 				vec = embedder.forward()
 
-				# add the name of the person + corresponding face
-				# embedding to their respective lists
+				
 				if not knownNames:
 					knownNames = name
 					
@@ -295,30 +267,29 @@ def generate_embeddings2(path_to_image):
 	return knownEmbeddings/30
 
 def recognize(image_path):
-		# load our serialized face detector from disk
-		print("[INFO] loading face detector...")
+		
+		print("Loading face detector...")
 		protoPath = os.path.sep.join(['face_detection_model', "deploy.prototxt"])
 		modelPath = os.path.sep.join(['face_detection_model',
 			"res10_300x300_ssd_iter_140000.caffemodel"])
 		detector = cv2.dnn.readNetFromCaffe(protoPath, modelPath)
 
-		# load our serialized face embedding model from disk
-		print("[INFO] loading face recognizer...")
+		
+		print("Loading face recognizer...")
 		embedding_model = 'openface_nn4.small2.v1.t7'
 		embedder = cv2.dnn.readNetFromTorch(embedding_model)
 		recognizer = 'output/recognizer.pickle'
-		# load the actual face recognition model along with the label encoder
+		
 		recognizer = pickle.loads(open(recognizer, "rb").read())
 		le = 'output/le.pickle'
 		le = pickle.loads(open(le, "rb").read())
 
-		# load the image, resize it to have a width of 600 pixels (while
-		# maintaining the aspect ratio), and then grab the image dimensions
+		
 		image = cv2.imread(image_path)
 		image = imutils.resize(image, width=600)
 		(h, w) = image.shape[:2]
 
-		# construct a blob from the image
+		
 		imageBlob = cv2.dnn.blobFromImage(
 			cv2.resize(image, (300, 300)), 1.0, (300, 300),
 			(104.0, 177.0, 123.0), swapRB=False, crop=False)
@@ -329,11 +300,11 @@ def recognize(image_path):
 
 		# loop over the detections
 		for i in range(0, detections.shape[2]):
-			# extract the confidence (i.e., probability) associated with the
-			# prediction
+			
+			
 			confidence = detections[0, 0, i, 2]
 
-			# filter out weak detections
+			
 			if confidence > 0.5:
 				# compute the (x, y)-coordinates of the bounding box for the
 				# face
@@ -348,9 +319,6 @@ def recognize(image_path):
 				if fW < 20 or fH < 20:
 					continue
 
-				# construct a blob for the face ROI, then pass the blob
-				# through our face embedding model to obtain the 128-d
-				# quantification of the face
 				faceBlob = cv2.dnn.blobFromImage(face, 1.0 / 255, (96, 96),
 					(0, 0, 0), swapRB=True, crop=False)
 				embedder.setInput(faceBlob)
@@ -366,31 +334,23 @@ def recognize(image_path):
 		return name, proba
 
 def generate_embeddings(path_to_image):
-	# Generate the embedding from the images. 
-
-	# load our serialized face detector from disk
-	# print("[INFO] loading face detector...")
+	
 	protoPath = os.path.sep.join(['face_detection_model', "deploy.prototxt"])
 	modelPath = os.path.sep.join(['face_detection_model',
 		"res10_300x300_ssd_iter_140000.caffemodel"])
 	detector = cv2.dnn.readNetFromCaffe(protoPath, modelPath)
 
-	# load our serialized face embedding model from disk
-	# print("[INFO] loading face recognizer...")
+	
 	embedding_model = 'openface_nn4.small2.v1.t7'
 	embedder = cv2.dnn.readNetFromTorch(embedding_model)
 
-	# grab the paths to the input images in our dataset
-	# print("[INFO] quantifying faces...")
-	print(path_to_image)
 	imagePaths = list(paths.list_images(path_to_image))
 	
-	# initialize our lists of extracted facial embeddings and
-	# corresponding people names
+	
 	knownEmbeddings = []
 	knownNames = []
 
-	# initialize the total number of faces processed
+	
 	total = 0
 
 	# loop over the image paths
@@ -400,9 +360,7 @@ def generate_embeddings(path_to_image):
 			len(imagePaths)))
 		name = imagePath.split(os.path.sep)[-2]
 
-		# load the image, resize it to have a width of 600 pixels (while
-		# maintaining the aspect ratio), and then grab the image
-		# dimensions
+		
 		image = cv2.imread(imagePath)
 		image = imutils.resize(image, width=600)
 		(h, w) = image.shape[:2]
@@ -412,24 +370,19 @@ def generate_embeddings(path_to_image):
 			cv2.resize(image, (300, 300)), 1.0, (300, 300),
 			(104.0, 177.0, 123.0), swapRB=False, crop=False)
 
-		# apply OpenCV's deep learning-based face detector to localize
-		# faces in the input image
+		
 		detector.setInput(imageBlob)
 		detections = detector.forward()
 
-		# ensure at least one face was found
+		
 		if len(detections) > 0:
-			# we're making the assumption that each image has only ONE
-			# face, so find the bounding box with the largest probability
+			
 			i = np.argmax(detections[0, 0, :, 2])
 			confidence = detections[0, 0, i, 2]
 
-			# ensure that the detection with the largest probability also
-			# means our minimum probability test (thus helping filter out
-			# weak detections)
+			
 			if confidence > 0.5:
-				# compute the (x, y)-coordinates of the bounding box for
-				# the face
+				
 				box = detections[0, 0, i, 3:7] * np.array([w, h, w, h])
 				(startX, startY, endX, endY) = box.astype("int")
 
@@ -441,16 +394,13 @@ def generate_embeddings(path_to_image):
 				if fW < 20 or fH < 20:
 					continue
 
-				# construct a blob for the face ROI, then pass the blob
-				# through our face embedding model to obtain the 128-d
-				# quantification of the face
+				
 				faceBlob = cv2.dnn.blobFromImage(face, 1.0 / 255,
 					(96, 96), (0, 0, 0), swapRB=True, crop=False)
 				embedder.setInput(faceBlob)
 				vec = embedder.forward()
 
-				# add the name of the person + corresponding face
-				# embedding to their respective lists
+				
 				knownNames.append(name)
 				knownEmbeddings.append(vec.flatten())
 				total += 1
@@ -464,19 +414,14 @@ def generate_embeddings(path_to_image):
 
 
 def eye_aspect_ratio(eye):
-		# compute the euclidean distances between the two sets of
-		# vertical eye landmarks (x, y)-coordinates
+		
 		A = dist.euclidean(eye[1], eye[5])
 		B = dist.euclidean(eye[2], eye[4])
 
-		# compute the euclidean distance between the horizontal
-		# eye landmark (x, y)-coordinates
 		C = dist.euclidean(eye[0], eye[3])
 
 		# compute the eye aspect ratio
 		ear = (A + B) / (2.0 * C)
-
-		# return the eye aspect ratio
 		return ear
 
 
@@ -487,33 +432,29 @@ def eye_aspect_ratio(eye):
 def predict():
 	content = request.data
 	jsondata = json.loads(content)
-	# print('request_data', jsondata)
+	
 	username = jsondata['username']
-	# print(test_description)
+	
 	
 	EYE_AR_THRESH = 0.3
-	# MOUTH_AR_THRESH = 0.79
+	
 	EYE_AR_CONSEC_FRAMES = 3
 
-	# initialize the frame counters and the total number of blinks
+	
 	COUNTER = 0
 	TOTAL = 0
-	# Mouth = 0
-	# initialize dlib's face detector (HOG-based) and then create
-	# the facial landmark predictor
 	shape_predictor = 'shape_predictor_68_face_landmarks.dat'
-	print("[INFO] loading facial landmark predictor...")
+	print("Loading facial landmark predictor")
 	detector = dlib.get_frontal_face_detector()
 	predictor = dlib.shape_predictor(shape_predictor)
 
-	# grab the indexes of the facial landmarks for the left and
-	# right eye, respectively
+	
 	(lStart, lEnd) = face_utils.FACIAL_LANDMARKS_IDXS["left_eye"]
 	(rStart, rEnd) = face_utils.FACIAL_LANDMARKS_IDXS["right_eye"]
 	# (mStart, mEnd) = (49, 68)
 
 	# start the video stream thread
-	print("[INFO] starting video stream thread...")
+	print("Starting video stream thread")
 
 	vs = VideoStream(src=0).start()
 	
@@ -527,39 +468,32 @@ def predict():
 	start_time = time.time()
 	while True:
 
-
-		# grab the frame from the threaded video file stream, resize
-		# it, and convert it to grayscale
-		# channels)
 		frame = vs.read()
-		
-		# print(frame)
+	
 		orig = frame.copy()
 		frame = imutils.resize(frame, width=1450)
 		gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
-		# detect faces in the grayscale frame
+	
 		rects = detector(gray, 0)
 		if not rects:
 			COUNTER = 0
 			TOTAL = 0
 
-		# print("detections", type(rects))
-		# print("len", len(rects))
+	
+		# More than two persons are detected
 		if len(rects) > 1:
 			cv2.destroyAllWindows()
 			vs.stop()
 			spoofing = True
 			break
+
 		for rect in rects:
-			# determine the facial landmarks for the face region, then
-			# convert the facial landmark (x, y)-coordinates to a NumPy
-			# array
+			
 			shape = predictor(gray, rect)
 			shape = face_utils.shape_to_np(shape)
 
-			# extract the left and right eye coordinates, then use the
-			# coordinates to compute the eye aspect ratio for both eyes
+			
 			leftEye = shape[lStart:lEnd]
 			rightEye = shape[rStart:rEnd]
 			leftEAR = eye_aspect_ratio(leftEye)
@@ -567,31 +501,20 @@ def predict():
 			
 			ear = (leftEAR + rightEAR) / 2.0
 			
-			# compute the convex hull for the left and right eye, then
-			# visualize each of the eyes
+			
 			leftEyeHull = cv2.convexHull(leftEye)
 			rightEyeHull = cv2.convexHull(rightEye)
 			
 			cv2.drawContours(frame, [leftEyeHull], -1, (0, 255, 0), 1)
 			cv2.drawContours(frame, [rightEyeHull], -1, (0, 255, 0), 1)
 			
-			# check to see if the eye aspect ratio is below the blink
-			# threshold, and if so, increment the blink frame counter
+			
 			if ear < EYE_AR_THRESH:
 				COUNTER += 1
-
-			# otherwise, the eye aspect ratio is not below the blink
-			# threshold
-
 			else:
-				# if the eyes were closed for a sufficient number of
-				# then increment the total number of blinks
+				
 				if COUNTER >= EYE_AR_CONSEC_FRAMES:
 					TOTAL += 1
-
-
-
-				# reset the eye frame counter
 				COUNTER = 0
 			
 
@@ -599,54 +522,37 @@ def predict():
 				cv2.FONT_HERSHEY_SIMPLEX, 1.3, (0, 0, 255), 2)
 			
 			if TOTAL >= 3:
-				cv2.putText(frame, "Authentication in progress, Please wait", (100, 300),
-				cv2.FONT_HERSHEY_SIMPLEX, 1.3, (0, 0, 255), 2)
+				
 				p = os.path.sep.join([path, "test.png"])
 				cv2.imwrite(p, orig)
 				predicted_embedding = generate_embeddings2('test')
 				trained_embedding = np.array(jsondata['feature_vector'])
 				predicted_embedding = predicted_embedding.reshape(1,128)
 				predicted_name, similarity = recognize('./test/test.png')
+				
 				print("Name: {} and similarity: {}".format(predicted_name, similarity))
-				# predicted_embedding = generate_embeddings('test')
-				# predicted_embedding = predicted_embedding.reshape(1,128)
-				# for testing
-				# c = generate_embeddings('dataset')
-				# trained_embeddings = (jsondata['feature_vector'])
-				# for embedding in trained_embeddings:
-				# 	np_embedding = np.array(embedding)
-				# 	np_embedding = np.reshape(1,128)
 				similarity_score = cosine_similarity(predicted_embedding,trained_embedding)
 
 				print(similarity_score)
-				# print(predicted_embedding)
 				
-				
-				
-				# trained_embedding = trained_embedding.reshape(1,128)
-				# Compute the similarity between two feature vectors
-				
-				# similarity_score = 0.9
-				# print(similarity_score[0][0])
-				# print("recognition done")
 				prediction = True
-		# print(prediction)		
+			
 		if prediction:
 			break
-		# cv2.
-		# show the frame
+		
 		
 		cv2.imshow("Frame", frame)
 		key = cv2.waitKey(1) & 0xFF
 
-		# if the `q` key was pressed, break from the loop
-		if key == ord("q"):
-			break
+		
+		
 		end_time = time.time()
 		time_elapsed = end_time - start_time
-		if time_elapsed > 10:
+		
+		# runs for only 15 secs
+		if time_elapsed > 15:
 			break
-	# do a bit of cleanup
+	
 	
 	json_object = {}
 	if spoofing:
@@ -656,13 +562,11 @@ def predict():
 	else:
 		cv2.destroyWindow('Frame')
 		vs.stop()
-		# vs.stream.release()
 		
-		# print("matching")
 		print('prediction', predicted_name)
 		print('name', username)
-		if similarity_score[0][0] > 0.60 and predicted_name == username and similarity > 0.80:
-			# return data
+		if similarity_score[0][0] > 0.50 and predicted_name == username and similarity > 0.70:
+			
 			print("same person")
 			json_object["success"] = True
 			json_object["code"] = 200
